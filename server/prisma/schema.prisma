@@ -1,15 +1,84 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Roles {
+  USER
+  ADMIN
+}
+
+model User {
+  id        Int      @default(autoincrement())
+  name      String
+  email     String
+  number    String
+  password  String
+  role      Roles    @default(USER)
+  createdAt DateTime @default(now())
+
+  Liked        Liked[]
+  LastSeen     LastSeen[]
+  Announcement Announcement[]
+
+  @@id([id])
+  @@map("users")
+}
+
+model Category {
+  id   Int    @default(autoincrement())
+  name String
+
+  Announcement Announcement[]
+
+  @@id([id])
+  @@map("categories")
+}
+
+model Announcement {
+  id          Int        @default(autoincrement())
+  name        String
+  description String
+  price       Decimal
+  location    String
+  images      String[]
+  categoryId  Int
+  userId      Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt()
+  User        User       @relation(fields: [userId], references: [id])
+  Category    Category   @relation(fields: [categoryId], references: [id])
+  Liked       Liked[]
+  LastSeen    LastSeen[]
+
+  @@id([id])
+  @@map("announcement")
+}
+
+model Liked {
+  id             Int          @default(autoincrement())
+  userId         Int
+  announcementId Int
+  createdAt      DateTime     @default(now())
+  User           User         @relation(fields: [userId], references: [id])
+  Announcement   Announcement @relation(fields: [announcementId], references: [id])
+
+  @@id([userId, announcementId])
+  @@map("liked")
+}
+
+model LastSeen {
+  id             Int          @default(autoincrement())
+  userId         Int
+  announcementId Int
+  createdAt      DateTime     @default(now())
+  User           User         @relation(fields: [userId], references: [id])
+  Announcement   Announcement @relation(fields: [announcementId], references: [id])
+
+  @@id([userId, announcementId])
+  @@map("lastseen")
 }
